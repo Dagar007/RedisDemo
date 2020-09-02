@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoredis
+spec:
+  selector:
+    matchLabels:
+      app: demoredis
+  replicas: 1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: demoredis
+    spec:
+      containers:
+      - name: demoredis
+        image: redis:alpine
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demoredisapi
+spec:
+  selector:
+    matchLabels:
+      app: demoredisapi
+  replicas: 1
+  template: # template for the pods
+    metadata:
+      labels:
+        app: demoredisapi
+    spec:
+      containers:
+      - name: demoredisapi
+        image:  dagardeepak88/redisdemo:latest
+        env:
+        - name: "Redis__Connection"
+          value: redis-service
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+---
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-api-service
+spec:
+  selector:
+    app: demoredisapi
+
+  ports:
+    - name: http
+      port: 80
+
+  type: NodePort
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: demoredis
+
+  ports:
+    - name: http
+      port: 6379
+  type: ClusterIP
